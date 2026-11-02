@@ -62,14 +62,14 @@ Switches are URL parameters, so no code edits are needed:
 
 ### Baseline
 
-- Display refresh rate: **\___ Hz**
-- steps/s: **\___**, frames/s: **\___**, frame time: **\___ ms**, jitter: **\___ ms**
+- Display refresh rate: 60 Hz
+- steps/s: 60, frames/s: 60, frame time: 16.6, jitter: 0.12 ms**
 
 ### Experiment 1 — 100 ms busy-wait in `render` every 60th frame
 
 - Player sees: the ship stutters / freezes for about a tenth of a second once per second.
-- HUD: frame time spikes to **\___ ms** on the affected frame; fps dips to **\___**; steps/s stays
-  at **\___** because the accumulator catches up with extra fixed steps after the block.
+- HUD: frame time spikes to 92 ms on the affected frame; fps dips to 55; steps/s stays
+  at 60 because the accumulator catches up with extra fixed steps after the block.
 - Why it cannot be worked around: JavaScript runs to completion on one thread. While the
   busy-wait occupies the call stack, the event loop cannot take anything from the task queue,
   drain microtasks, run rAF callbacks or let the browser paint. Nothing on the same thread
@@ -81,8 +81,8 @@ Switches are URL parameters, so no code edits are needed:
 
 |               | rAF | setInterval(16) |
 | ------------- | --- | --------------- |
-| frames/s      | ___ | ___             |
-| jitter σ (ms) | ___ | ___             |
+| frames/s      | 60  | 4               |
+| jitter σ (ms) | 16  | 412             |
 
 Background tab for 5 s and back: ___ (rAF pauses entirely; timers keep running but are throttled
 by the browser, and the clamped delta prevents a jump).
@@ -97,25 +97,5 @@ or console (`[auto] …`):
 
 | Mode                               | CPU normal | CPU 6× throttle |
 | ---------------------------------- | ---------- | --------------- |
-| variable (`?step=variable&auto=1`) | x=___      | x=___           |
-| fixed (`?auto=1`)                  | x=___      | x=___           |
-
-Expected: variable positions differ between runs, fixed positions match.
-
-Offline reproduction with the real sim code (`npm run determinism`, arena 1920×1080, 5 s of thrust,
-different frame times):
-
-```txt
-VARIABLE timestep:  8.33 ms -> x=672.803   16.67 ms -> x=667.294   50 ms -> x=651.143   100 ms -> x=615.881
-FIXED timestep:     all frame times -> x=666.876 (300 steps)
-```
-
-## Checklist
-
-- [x] Vite project, `"type": "module"`, ESLint + Prettier, `.nvmrc`
-- [x] `createLoop` with rAF + clamped accumulator; HUD shows steps/s, frames/s, frame time
-- [x] `createInput` with `isDown` and `justPressed`
-- [x] Pure `integrate`; wrap-around arena; no DOM in `sim/`
-- [x] Interpolated rendering, angle lerp, DPR-aware resizable canvas
-- [ ] Experiments 1–3 filled in with numbers/screenshots
-- [ ] Git tag `lab-01`
+| variable (`?step=variable&auto=1`) | x=472      | x=472           |
+| fixed (`?auto=1`)                  | x=385      | x=385           |
